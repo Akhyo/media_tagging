@@ -1,16 +1,57 @@
 import sys
 import os.path
 import hashlib
+import magic
+import subprocess
 
 prefered_block_size = 4096
 media_types = {}
 
 
 class Section:
-    pass
+    def get_start(self):
+        return elemlist[0]
+
+    def get_end(self):
+        return elemlist[-1]
+
+    def is_in_section(self, element):
+        return element in elemlist
+
+    def get_elements(self):
+        return elemlist[:]
+
+    def open_element(self, element):
+        if is_in_section(element):
+            container.ext_open(filerecord.canonpath, element)
+        else:
+            raise ValueError('Element not found in section')
+
+
+    def open_offset(self, offset=0):
+        #should check for array length here?
+        container.ext_open(filerecord.canonpath, element[offset])
+
+    def overlaps(self, other_section):
+        if self is other_section:
+            raise ValueError('Comparing with same section')
+        else:
+            return False
+
+    def __init__(self, filerecord, container):
+        self.filerecord = filerecord
+        self.container = container
+        self.elemlist = [None]
+
 
 class Container:
-    pass
+
+    def ext_open(self, namepath, element):
+        pass
+
+    def __init__(self, name, section_class, file_type, media_type, cli):
+        pass
+
 
 class FileRecord:
 
