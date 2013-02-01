@@ -5,21 +5,21 @@ import magic
 import subprocess
 
 prefered_block_size = 4096
-media_types = {}
+containers = {}
 
 
 class Section:
     def get_start(self):
-        return elemlist[0]
+        return self.elemlist[0]
 
     def get_end(self):
-        return elemlist[-1]
+        return self.elemlist[-1]
 
     def is_in_section(self, element):
-        return element in elemlist
+        return element in self.elemlist
 
     def get_elements(self):
-        return elemlist[:]
+        return self.elemlist[:]
 
     def open_element(self, element):
         if is_in_section(element):
@@ -30,7 +30,7 @@ class Section:
 
     def open_offset(self, offset=0):
         #should check for array length here?
-        container.ext_open(filerecord.canonpath, element[offset])
+        container.ext_open(filerecord.canonpath, self.elemlist[offset])
 
     def overlaps(self, other_section):
         if self is other_section:
@@ -43,14 +43,27 @@ class Section:
         self.container = container
         self.elemlist = [None]
 
+class CommandLine:
+    def generate(self, namepath, element):
+        outlist=cli[:]
+        outlist.insert(filepos, namepath)
+        if elempos:
+            outlist.insert(elempos, element)
+
+    def __init__(self, arguments, filepos, elempos = None):
+        self.argurments=arguments
+        self.filepos=filepos
+        self.elempos=elempos
+       
 
 class Container:
-
     def ext_open(self, namepath, element):
-        pass
+        subprocess.Popen(self.cli.generate(namepath, element))
 
-    def __init__(self, name, section_class, file_type, media_type, cli):
-        pass
+    def __init__(self, section_class, file_type, media_type, cli):
+        self.section_class = section_class
+        self.cli = cli
+        containers[(file_type, media_type)] = self
 
 
 class FileRecord:
