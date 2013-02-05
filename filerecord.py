@@ -69,6 +69,7 @@ class Container:
 class FileRecord:
 
     hash_values={}
+    container = None
     
     def add_section(self):
         pass
@@ -101,16 +102,29 @@ class FileRecord:
 
     def recalculate_all(self):
         if self.accesible():
-            self.update_size
+            self.update_size()
         #TODO
 
-    def __init__(self, pathname, hash_type=''):
+    def assign_container(self, overwrite = False):
+        if overwrite or container == None:
+            if (file_type, media_type) in containers:
+                self.container = containers[(file_type, media_type)]
+            else:
+                raise ValueError('Container not found for this file')
+        else:
+            raise ValueError('Container already defined')
+
+
+    def __init__(self, pathname, hash_type='', media_type='default'):
         if os.path.exists(pathname) and os.path.isfile(pathname):
             self.canon_path  = os.path.realpath(pathname)
             self.file_name = os.path.basename(self.canon_path)
             self.file_size = os.path.getsize(self.canon_path)
             if hash_type:
                 self.update_file_hash(hash_type)
+            self.media_type = media_type
+            self.file_type = magic.from_file(self.canonpath, mime=True)
+            assign_container()
         else:
             raise ValueError('Not a file.')
 
