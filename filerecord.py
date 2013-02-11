@@ -124,7 +124,8 @@ class FileRecord:
             if hash_type:
                 self.update_file_hash(hash_type)
             self.media_type = media_type
-            self.file_type = magic.from_file(self.canonpath, mime=True)
+            self.file_type = magic.from_file(self.canonpath.encode('utf-8'),
+                                             mime=True).decode('utf-8')
             assign_container()
         else:
             raise ValueError('Not a file.')
@@ -134,4 +135,3 @@ class FileRecord:
                                                      self.canon_path, 
                                                      self.file_size, 
                                                      self.tag_entries)
-   
