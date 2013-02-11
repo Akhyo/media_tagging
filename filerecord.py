@@ -46,13 +46,16 @@ class Section:
 
 class CommandLine:
     def generate(self, namepath, element):
-        outlist=cli[:]
-        outlist.insert(filepos, namepath)
-        if elempos:
-            outlist.insert(elempos, element)
+        outlist=self.arguments[:]
+        outlist.insert(self.filepos, namepath)
+        if self.elempos:
+            outlist.insert(self.elempos, element)
+            #add warning when there is no elempos but there is element 
+            #and error for vice-versa
+        return outlist
 
     def __init__(self, arguments, filepos, elempos = None):
-        self.argurments=arguments
+        self.arguments=arguments
         self.filepos=filepos
         self.elempos=elempos
        
@@ -107,7 +110,7 @@ class FileRecord:
         #TODO
 
     def assign_container(self, overwrite = False):
-        if overwrite or container == None:
+        if overwrite or self.container == None:
             if (file_type, media_type) in containers:
                 self.container = containers[(file_type, media_type)]
             else:
@@ -135,3 +138,4 @@ class FileRecord:
                                                      self.canon_path, 
                                                      self.file_size, 
                                                      self.tag_entries)
+
