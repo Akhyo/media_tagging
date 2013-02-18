@@ -39,10 +39,14 @@ class Section:
         else:
             return False
 
-    def __init__(self, filerecord, container):
+    def __init__(self, filerecord, container, parent = None, elemlist = [None]):
         self.filerecord = filerecord
         self.container = container
-        self.elemlist = [None]
+        self.parent = parent
+        if self.parent:
+            self.elemlist = elemlist
+        else:
+            self.elemlist = Container.generate_elements(filerecord)
 
 class CommandLine:
     def generate(self, namepath, element):
@@ -61,12 +65,21 @@ class CommandLine:
        
 
 class Container:
+
+    def generate_elements(self, filerecord, sections_class):
+        if section_class in self.elem_methods:
+            return self.elem_methods[section_class](filerecord)
+        else:
+            raise ValueError("Section not allowed for this container")
+
     def ext_open(self, namepath, element):
         subprocess.Popen(self.cli.generate(namepath, element))
 
-    def __init__(self, section_class, file_type, media_type, cli):
+    def __init__(self, section_class, file_type, media_type, cli, 
+                 elem_methods = { Section : lambda filename: [None] } ):
         self.section_class = section_class
         self.cli = cli
+        self.elem_methods = elem_methods
         containers[(file_type, media_type)] = self
 
 
