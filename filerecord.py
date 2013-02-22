@@ -23,14 +23,14 @@ class Section:
         return self.elemlist[:]
 
     def open_element(self, element):
-        if is_in_section(element):
-            container.ext_open(filerecord.canonpath, element)
+        if self.is_in_section(element):
+            self.container.ext_open(self.filerecord.canon_path, element)
         else:
             raise ValueError('Element not found in section')
 
     def open_offset(self, offset=0):
         #should check for array length here?
-        container.ext_open(filerecord.canonpath, self.elemlist[offset])
+        self.container.ext_open(self.filerecord.canon_path, self.elemlist[offset])
 
     def overlaps(self, other_section):
         if self is other_section:
@@ -45,7 +45,7 @@ class Section:
         if self.parent:
             self.elemlist = elemlist
         else:
-            self.elemlist = Container.generate_elements(filerecord)
+            self.elemlist = self.container.generate_elements(self.filerecord)
 
 class CommandLine:
     def generate(self, namepath, element):
@@ -65,10 +65,10 @@ class CommandLine:
 
 class Container:
 
-    def get_global_class_instance(self, filerecord):
+    def get_global_section(self, filerecord):
         return self.section_class(filerecord, self)
 
-    def generate_elements(self, filerecord, sections_class):
+    def generate_elements(self, filerecord):
         return self.elem_method(filerecord.canon_path)
 
     def ext_open(self, namepath, element):
@@ -124,8 +124,8 @@ class FileRecord:
 
     def assign_container(self, overwrite = False):
         if overwrite or self.container == None:
-            if (file_type, media_type) in containers:
-                self.container = containers[(file_type, media_type)]
+            if (self.file_type, self.media_type) in containers:
+                self.container = containers[(self.file_type, self.media_type)]
             else:
                 raise ValueError('Container not found for this file')
         else:
@@ -140,9 +140,10 @@ class FileRecord:
             if hash_type:
                 self.update_file_hash(hash_type)
             self.media_type = media_type
-            self.file_type = magic.from_file(self.canonpath.encode('utf-8'),
+            self.file_type = magic.from_file(self.canon_path.encode('utf-8'),
                                              mime=True).decode('utf-8')
-            assign_container()
+            self.assign_container()
+            self.global_section = self.container.get_global_section(self)
         else:
             raise ValueError('Not a file.')
 
