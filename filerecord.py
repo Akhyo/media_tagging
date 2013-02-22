@@ -28,7 +28,6 @@ class Section:
         else:
             raise ValueError('Element not found in section')
 
-
     def open_offset(self, offset=0):
         #should check for array length here?
         container.ext_open(filerecord.canonpath, self.elemlist[offset])
@@ -58,7 +57,7 @@ class CommandLine:
             #and error for vice-versa
         return outlist
 
-    def __init__(self, arguments, filepos, elempos = None):
+    def __init__(self, arguments, filepos, elempos = None, ):
         self.arguments=arguments
         self.filepos=filepos
         self.elempos=elempos
@@ -66,20 +65,20 @@ class CommandLine:
 
 class Container:
 
+    def get_global_class_instance(self, filerecord):
+        return self.section_class(filerecord, self)
+
     def generate_elements(self, filerecord, sections_class):
-        if section_class in self.elem_methods:
-            return self.elem_methods[section_class](filerecord)
-        else:
-            raise ValueError("Section not allowed for this container")
+        return self.elem_method(filerecord.canon_path)
 
     def ext_open(self, namepath, element):
         subprocess.Popen(self.cli.generate(namepath, element))
 
-    def __init__(self, section_class, file_type, media_type, cli, 
-                 elem_methods = { Section : lambda filename: [None] } ):
+    def __init__(self, file_type, media_type, cli, section_class=Section,
+                 elem_method = lambda filename: [None] ):
         self.section_class = section_class
         self.cli = cli
-        self.elem_methods = elem_methods
+        self.elem_method = elem_method
         containers[(file_type, media_type)] = self
 
 
@@ -87,6 +86,7 @@ class FileRecord:
 
     hash_values={}
     container = None
+    sections =[]
     
     def add_section(self):
         pass
