@@ -7,9 +7,11 @@ import subprocess
 
 prefered_block_size = 4096
 containers = {}
-
+#all_tags format{category:{section object}}
+all_tags={}
 
 class Section:
+    tags={}
     def get_start(self):
         return self.elemlist[0]
 
@@ -31,6 +33,15 @@ class Section:
     def open_offset(self, offset=0):
         #should check for array length here?
         self.container.ext_open(self.filerecord.canon_path, self.elemlist[offset])
+
+    def add_tag(self, category, value):
+        #if implemented tag class, it will be searched by category
+        self.tags[category]=value
+        if category not in all_tags:
+            all_tags[category] = set(self) 
+        else:
+            all_tags[category].add(self)
+
 
     def overlaps(self, other_section):
         if self is other_section:
