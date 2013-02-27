@@ -10,8 +10,9 @@ containers = {}
 #all_tags format{category:{section object}}
 all_tags={}
 
+
 class Section:
-    tags={}
+    tag_vals={}
     def get_start(self):
         return self.elemlist[0]
 
@@ -34,14 +35,21 @@ class Section:
         #should check for array length here?
         self.container.ext_open(self.filerecord.canon_path, self.elemlist[offset])
 
-    def add_tag(self, category, value):
+    def add_tag(self, category, value=None):
         #if implemented tag class, it will be searched by category
-        self.tags[category]=value
+        self.tag_vals[category]=value
         if category not in all_tags:
             all_tags[category] = set(self) 
         else:
             all_tags[category].add(self)
 
+    def remove_tag(self, category):
+        if category in tag_vals:
+            del tag_vals[category]
+            all_tags[category].remove(self)
+        else:
+            pass
+        #raise error
 
     def overlaps(self, other_section):
         if self is other_section:
@@ -163,4 +171,10 @@ class FileRecord:
                                                      self.canon_path, 
                                                      self.file_size, 
                                                      self.tag_entries)
+
+
+def gen_sections_with_tag(category, value_comparator=lambda value: True ):
+    section_comparator=lambda section:value_comparator(section.tag_vals[category])
+    for out_section in filter(all_tags[category], section_comparator):
+            yield out_section
 
