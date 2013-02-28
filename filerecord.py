@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+import os
 import os.path
 import hashlib
 import magic
@@ -9,10 +10,11 @@ prefered_block_size = 4096
 containers = {}
 #all_tags format{category:{section object}}
 all_tags={}
-
+filerecords=set()
 
 class Section:
     tag_vals={}
+    subsections=set()
     def get_start(self):
         return self.elemlist[0]
 
@@ -22,18 +24,20 @@ class Section:
     def is_in_section(self, element):
         return element in self.elemlist
 
-    def get_elements(self):
+    def copy_elements(self):
         return self.elemlist[:]
 
     def open_element(self, element):
         if self.is_in_section(element):
-            self.container.ext_open(self.filerecord.canon_path, element)
+            self.filerecord.container.ext_open(self.filerecord.canon_path, 
+                                               element)
         else:
             raise ValueError('Element not found in section')
 
     def open_offset(self, offset=0):
         #should check for array length here?
-        self.container.ext_open(self.filerecord.canon_path, self.elemlist[offset])
+        self.filerecord.container.ext_open(self.filerecord.canon_path, 
+                                           self.elemlist[offset])
 
     def add_tag(self, category, value=None):
         #if implemented tag class, it will be searched by category
@@ -51,20 +55,23 @@ class Section:
             pass
         #raise error
 
+    def add_subsection(self, subsection):
+        self.subsections.add(subsection)
+
     def overlaps(self, other_section):
         if self is other_section:
             raise ValueError('Comparing with same section')
         else:
             return False
 
-    def __init__(self, filerecord, container, parent = None, elemlist = [None]):
+    def __init__(self, filerecord, parent = None, elemlist = [None]):
         self.filerecord = filerecord
-        self.container = container
         self.parent = parent
         if self.parent:
             self.elemlist = elemlist
+            self.parent.add_subsection(self)
         else:
-            self.elemlist = self.container.generate_elements(self.filerecord)
+            self.elemlist = self.filerecord.container.generate_elements(self.filerecord)
 
 class CommandLine:
     def generate(self, namepath, element):
@@ -84,9 +91,6 @@ class CommandLine:
 
 class Container:
 
-    def get_global_section(self, filerecord):
-        return self.section_class(filerecord, self)
-
     def generate_elements(self, filerecord):
         return self.elem_method(filerecord.canon_path)
 
@@ -105,14 +109,14 @@ class FileRecord:
 
     hash_values={}
     container = None
-    sections =[]
+    sections = set()
     
-    def add_section(self):
-        pass
-    #TODO
+    def add_section(self, elem_list = [None]):
+        self.sections.add(
+             self.container.section_class(filerecord, global_section, elem_list))
 
     def accesible(self):
-        return os.path.exists(self.canon_path) and os.path.isfile(self.canon_path)
+        return os.access(self.canon_path, os.R_OK) and os.path.isfile(self.canon_path)
 
     def update_size(self):
         if self.accesible():
@@ -139,7 +143,8 @@ class FileRecord:
     def recalculate_all(self):
         if self.accesible():
             self.update_size()
-        #TODO
+            for hash_type in hash_values:
+                self.update_file_hash(hash_type)
 
     def assign_container(self, overwrite = False):
         if overwrite or self.container == None:
@@ -162,7 +167,8 @@ class FileRecord:
             self.file_type = magic.from_file(self.canon_path.encode('utf-8'),
                                              mime=True).decode('utf-8')
             self.assign_container()
-            self.global_section = self.container.get_global_section(self)
+            self.global_section = self.container.section_class(self)
+            filerecords.add(self)
         else:
             raise ValueError('Not a file.')
 
@@ -170,11 +176,15 @@ class FileRecord:
         return "<Filerecord('%s','%s','%s'): %s>" % (self.file_name, 
                                                      self.canon_path, 
                                                      self.file_size, 
-                                                     self.tag_entries)
+                                                     )
 
 
 def gen_sections_with_tag(category, value_comparator=lambda value: True ):
     section_comparator=lambda section:value_comparator(section.tag_vals[category])
     for out_section in filter(all_tags[category], section_comparator):
             yield out_section
+
+def gen_files_with_tag(category, value_comparator=lambda value: True ):
+    for out_section in gen_sections_with_tag(category, value_comparator):
+        yield out_section.filerecord.canon_path
 
