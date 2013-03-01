@@ -14,3 +14,13 @@ python_container.ext_open('test.py', None)
 
 fr = filerecord.FileRecord('./test.py', 'md5')
 fr.global_section.open_element(fr.global_section.get_start())
+fr.global_section.add_tag('global tag')
+
+fr.add_section()
+fr.add_section()
+count=0
+for section in filter(lambda section : None in section.elemlist, fr.sections ) :
+    section.add_tag('localtag {0}'.format(count))
+    count+=1
+
+print(filerecord.all_tags)

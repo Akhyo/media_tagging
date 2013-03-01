@@ -43,7 +43,7 @@ class Section:
         #if implemented tag class, it will be searched by category
         self.tag_vals[category]=value
         if category not in all_tags:
-            all_tags[category] = set(self) 
+            all_tags[category] = set([self]) 
         else:
             all_tags[category].add(self)
 
@@ -113,7 +113,7 @@ class FileRecord:
     
     def add_section(self, elem_list = [None]):
         self.sections.add(
-             self.container.section_class(filerecord, global_section, elem_list))
+             self.container.section_class(self, self.global_section, elem_list))
 
     def accesible(self):
         return os.access(self.canon_path, os.R_OK) and os.path.isfile(self.canon_path)
