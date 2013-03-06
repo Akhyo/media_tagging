@@ -19,8 +19,11 @@ fr.global_section.add_tag('global tag')
 fr.add_section()
 fr.add_section()
 count=0
-for section in filter(lambda section : None in section.elemlist, fr.sections ) :
-    section.add_tag('localtag {0}'.format(count))
+for section in filter(lambda section : None in section.elemlist, fr.global_section.subsections.values() ) :
+    section.add_tag('localtag{0}'.format(count))
     count+=1
 
-print(filerecord.all_tags)
+for tag in filerecord.all_tags:
+    for section in filerecord.all_tags[tag]:
+        print('{tag}:{value}:{section}'.format(tag=tag, section=section.name,
+             value=section.tag_vals[tag]))

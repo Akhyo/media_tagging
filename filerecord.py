@@ -14,7 +14,7 @@ filerecords=set()
 
 class Section:
     tag_vals={}
-    subsections=set()
+    subsections={}
     def get_start(self):
         return self.elemlist[0]
 
@@ -56,7 +56,7 @@ class Section:
         #raise error
 
     def add_subsection(self, subsection):
-        self.subsections.add(subsection)
+        self.subsections[subsection.name] = subsection
 
     def overlaps(self, other_section):
         if self is other_section:
@@ -64,14 +64,29 @@ class Section:
         else:
             return False
 
-    def __init__(self, filerecord, parent = None, elemlist = [None]):
+    def __init__(self, filerecord, name = None, parent = None, elemlist = [None]):
         self.filerecord = filerecord
         self.parent = parent
         if self.parent:
             self.elemlist = elemlist
+            if name and name not in parent.subsection.keys:
+                self.name = name
+            elif name in parent.subsections.keys():
+                raise ValueError('Section of that name already exists')
+            else:
+                for i in range(len(parent.subsections)-1, 999):
+                    name = 'subsection{0}'.format(i)
+                    if name not in parent.subsections.keys():
+                        self.name = name
+                        break
+                else:
+                    raise ValueError('Section out of arbitrary range')
             self.parent.add_subsection(self)
         else:
             self.elemlist = self.filerecord.container.generate_elements(self.filerecord)
+            self.name = "global"
+            self.subsections[self.name]=self
+
 
 class CommandLine:
     def generate(self, namepath, element):
@@ -109,11 +124,9 @@ class FileRecord:
 
     hash_values={}
     container = None
-    sections = set()
     
-    def add_section(self, elem_list = [None]):
-        self.sections.add(
-             self.container.section_class(self, self.global_section, elem_list))
+    def add_section(self, name = None, elem_list = [None]):
+         self.container.section_class(self, name, self.global_section, elem_list)
 
     def accesible(self):
         return os.access(self.canon_path, os.R_OK) and os.path.isfile(self.canon_path)
@@ -173,7 +186,7 @@ class FileRecord:
             raise ValueError('Not a file.')
 
     def __repr__(self):
-        return "<Filerecord('%s','%s','%s'): %s>" % (self.file_name, 
+        return "<Filerecord({0},{1},{2}): TODO >".format(self.file_name, 
                                                      self.canon_path, 
                                                      self.file_size, 
                                                      )
