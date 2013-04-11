@@ -8,7 +8,7 @@ import subprocess
 
 prefered_block_size = 4096
 containers = {}
-#all_tags format{category:{section object}}
+#all_tags{category:{section object}}
 all_tags={}
 filerecords=set()
 
