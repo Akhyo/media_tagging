@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import filerecord
 import magic
+import pickle
 
 python_cli=filerecord.CommandLine(['echo', '*test*','*test*'], 2)
 print(python_cli.generate('./test.py', None))
@@ -27,3 +28,5 @@ for tag in filerecord.all_tags:
     for section in filerecord.all_tags[tag]:
         print('{tag}:{value}:{section}'.format(tag=tag, section=section.name,
              value=section.tag_vals[tag]))
+dumpfile = open('filedata.test','wb') 
+pickle.dump(filerecord.all_data, dumpfile)

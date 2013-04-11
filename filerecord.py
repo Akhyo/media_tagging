@@ -12,6 +12,8 @@ containers = {}
 all_tags={}
 filerecords=set()
 
+all_data=(filerecords, all_tags, containers)
+
 class Section:
     tag_vals={}
     subsections={}
@@ -102,21 +104,25 @@ class CommandLine:
         self.arguments=arguments
         self.filepos=filepos
         self.elempos=elempos
-       
+
+
+class ElementGenerator:
+    def get_elements(filename):
+        return [None]
 
 class Container:
 
     def generate_elements(self, filerecord):
-        return self.elem_method(filerecord.canon_path)
+        return self.elem_gen.get_elements(filerecord.canon_path)
 
     def ext_open(self, namepath, element):
         subprocess.Popen(self.cli.generate(namepath, element))
 
     def __init__(self, file_type, media_type, cli, section_class=Section,
-                 elem_method = lambda filename: [None] ):
+                 elem_gen = ElementGenerator ):
         self.section_class = section_class
         self.cli = cli
-        self.elem_method = elem_method
+        self.elem_gen = elem_gen
         containers[(file_type, media_type)] = self
 
 
