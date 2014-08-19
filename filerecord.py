@@ -15,8 +15,6 @@ filerecords=set()
 all_data=(filerecords, all_tags, containers)
 
 class Section:
-    tag_vals={}
-    subsections={}
     def get_start(self):
         return self.elemlist[0]
 
@@ -50,8 +48,8 @@ class Section:
             all_tags[category].add(self)
 
     def remove_tag(self, category):
-        if category in tag_vals:
-            del tag_vals[category]
+        if category in self.tag_vals:
+            del self.tag_vals[category]
             all_tags[category].remove(self)
         else:
             pass
@@ -69,6 +67,8 @@ class Section:
     def __init__(self, filerecord, name = None, parent = None, elemlist = [None]):
         self.filerecord = filerecord
         self.parent = parent
+        self.tag_vals={}
+        self.subsections={} 
         if self.parent:
             self.elemlist = elemlist
             if name and name not in parent.subsection.keys:
@@ -183,7 +183,7 @@ class FileRecord:
             if hash_type:
                 self.update_file_hash(hash_type)
             self.media_type = media_type
-            self.file_type = magic.from_file(self.canon_path.encode('utf-8'),
+            self.file_type = magic.from_file(self.canon_path,
                                              mime=True).decode('utf-8')
             self.assign_container()
             self.global_section = self.container.section_class(self)

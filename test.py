@@ -6,7 +6,7 @@ import pickle
 python_cli=filerecord.CommandLine(['echo', '*test*','*test*'], 2)
 print(python_cli.generate('./test.py', None))
 
-python_filetype=magic.from_file(b'test.py',mime=True).decode('utf-8')
+python_filetype=magic.from_file('test.py',mime=True).decode('utf-8')
 print(python_filetype)
 
 python_container = filerecord.Container(python_filetype, 'default', 
